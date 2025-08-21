@@ -1,0 +1,98 @@
+.product-gallery-swiper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.product-gallery-swiper.swiper-initialized {
+  opacity: 1;
+}
+
+media-gallery .product__media-list:not(.swiper-wrapper) {
+  display: none !important;
+}
+
+.product-gallery-swiper .swiper-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.product-gallery-swiper .swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: #fff;
+  width: 100% !important;
+  flex-shrink: 0 !important;
+  height: auto;
+  position: relative;
+  transition-property: transform;
+  z-index: 1;
+}
+
+.product-gallery-swiper .swiper-slide-active {
+  z-index: 2;
+}
+
+.product-gallery-swiper .swiper-slide img,
+.product-gallery-swiper .swiper-slide video,
+.product-gallery-swiper .swiper-slide model-viewer {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.product-gallery-swiper .swiper-button-next,
+.product-gallery-swiper .swiper-button-prev {
+  color: #000;
+  background: rgba(255, 255, 255, 0.85);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.product-gallery-swiper .swiper-button-next:after,
+.product-gallery-swiper .swiper-button-prev:after {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.product-gallery-swiper .swiper-pagination {
+  position: relative;
+  bottom: auto;
+  margin-top: 20px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.product-gallery-swiper .swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background: #ccc;
+  opacity: 1;
+}
+
+.product-gallery-swiper .swiper-pagination-bullet-active {
+  background: #000;
+}
+
+.product-gallery-swiper.swiper-single-slide .swiper-button-next,
+.product-gallery-swiper.swiper-single-slide .swiper-button-prev,
+.product-gallery-swiper.swiper-single-slide .swiper-pagination {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.product__media-list.swiper-wrapper > li.swiper-slide {
+  width: 100% !important;
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+}

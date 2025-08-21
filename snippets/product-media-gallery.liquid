@@ -1,16 +1,3 @@
-{% comment %}
-  Renders a product media gallery. Should be used with 'media-gallery.js'
-  Also see 'product-media-modal'
-
-  Accepts:
-  - product: {Object} Product liquid object
-  - variant_images: {Array} Product images associated with a variant
-  - limit: {Number} (optional) When passed, limits the number of media items to render
-
-  Usage:
-  {% render 'product-media-gallery' %}
-{% endcomment %}
-
 {%- liquid
   if section.settings.hide_variants and variant_images.size == product.media.size
     assign single_media_visible = true
@@ -40,6 +27,14 @@
   elsif section.settings.media_size == 'small'
     assign media_width = 0.45
   endif
+
+  assign color_option_name = section.settings.color_option_name | default: 'Color'
+  assign color_option_index = -1
+  for opt in product.options
+    if opt == color_option_name
+      assign color_option_index = forloop.index0
+    endif
+  endfor
 -%}
 
 <media-gallery
@@ -50,63 +45,68 @@
   {% endif %}
   aria-label="{{ 'products.product.media.gallery_viewer' | t }}"
   data-desktop-layout="{{ section.settings.gallery_layout }}"
+  data-swiper-slides-desktop="{{ section.settings.swiper_slides_desktop }}"
+  data-swiper-slides-tablet="{{ section.settings.swiper_slides_tablet }}"
+  data-swiper-slides-mobile="{{ section.settings.swiper_slides_mobile }}"
+  data-swiper-space-between="{{ section.settings.swiper_space_between }}"
+  data-swiper-enable-pagination="{{ section.settings.swiper_enable_pagination }}"
+  data-swiper-enable-navigation="{{ section.settings.swiper_enable_navigation }}"
+  data-color-option-name="{{ section.settings.color_option_name | default: 'Color' }}"
+  data-color-index="{{ color_option_index }}"
 >
+
   <div id="GalleryStatus-{{ section.id }}" class="visually-hidden" role="status"></div>
-  <slider-component id="GalleryViewer-{{ section.id }}" class="slider-mobile-gutter">
+
+  <div id="GalleryViewer-{{ section.id }}" class="slider-mobile-gutter">
     <a class="skip-to-content-link button visually-hidden quick-add-hidden" href="#ProductInfo-{{ section.id }}">
       {{ 'accessibility.skip_to_product_info' | t }}
     </a>
-    <ul
-      id="Slider-Gallery-{{ section.id }}"
-      class="product__media-list contains-media grid grid--peek list-unstyled slider slider--mobile"
-      role="list"
-    >
-      {%- if product.selected_or_first_available_variant.featured_media != null -%}
-        {%- assign featured_media = product.selected_or_first_available_variant.featured_media -%}
-        <li
-          id="Slide-{{ section.id }}-{{ featured_media.id }}"
-          class="product__media-item grid__item slider__slide is-active{% if single_media_visible %} product__media-item--single{% endif %}{% if featured_media.media_type != 'image' %} product__media-item--full{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
-          data-media-id="{{ section.id }}-{{ featured_media.id }}"
-        >
-          {%- assign media_position = 1 -%}
-          {% render 'product-thumbnail',
-            media: featured_media,
-            media_count: media_count,
-            position: media_position,
-            desktop_layout: section.settings.gallery_layout,
-            mobile_layout: section.settings.mobile_thumbnails,
-            loop: section.settings.enable_video_looping,
-            modal_id: section.id,
-            xr_button: true,
-            media_width: media_width,
-            media_fit: section.settings.media_fit,
-            constrain_to_viewport: section.settings.constrain_to_viewport,
-            lazy_load: false
-          %}
-        </li>
-      {%- endif -%}
-      {%- for media in product.media -%}
-        {% if media_position >= limit
-          or media_position >= 1
-          and section.settings.hide_variants
-          and variant_images contains media.src
-        %}
-          {% continue %}
-        {% endif %}
 
-        {%- unless media.id == product.selected_or_first_available_variant.featured_media.id -%}
+    <div class="swiper" data-swiper-gallery>
+      <ul
+        id="Slider-Gallery-{{ section.id }}"
+        class="swiper-wrapper product__media-list list-unstyled"
+        role="list"
+      >
+        {%- for media in product.media -%}
+          {%- assign media_position = forloop.index -%}
           <li
             id="Slide-{{ section.id }}-{{ media.id }}"
-            class="product__media-item grid__item slider__slide{% if single_media_visible %} product__media-item--single{% endif %}{% if product.selected_or_first_available_variant.featured_media == nil and forloop.index == 1 %} is-active{% endif %}{% if media.media_type != 'image' %} product__media-item--full{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+            class="swiper-slide product__media-item grid__item slider__slide{% if forloop.first %} is-active{% endif %}{% if media.media_type != 'image' %} product__media-item--full{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
             data-media-id="{{ section.id }}-{{ media.id }}"
-          >
+            data-slide-index="{{ forloop.index0 }}"
             {%- liquid
-              assign media_position = media_position | default: 0 | plus: 1
-              assign lazy_load = false
-              if media_position > 1
-                assign lazy_load = true
+              if media.media_type == 'image'
+                assign img_src = media.src
+                assign img_obj = product.images | where: 'src', img_src | first
+                assign color_values = ''
+                if img_obj and img_obj.variants.size > 0
+                  assign colors = ''
+                  for var in img_obj.variants
+                    assign color_option_name = section.settings.color_option_name | default: 'Color'
+                    assign color_index = 0
+                    for opt in product.options
+                      if opt == color_option_name
+                        assign color_index = forloop.index0
+                      endif
+                    endfor
+                    if color_index == 0
+                      assign color_value = var.option1
+                    elsif color_index == 1
+                      assign color_value = var.option2
+                    else
+                      assign color_value = var.option3
+                    endif
+                    if color_value
+                      assign colors = colors | append: color_value | append: '||'
+                    endif
+                  endfor
+                  assign color_values = colors | downcase
+                endif
               endif
             -%}
+            {% if color_values %}data-variant-colors="{{ color_values }}"{% endif %}
+          >
             {% render 'product-thumbnail',
               media: media,
               media_count: media_count,
@@ -119,41 +119,22 @@
               media_width: media_width,
               media_fit: section.settings.media_fit,
               constrain_to_viewport: section.settings.constrain_to_viewport,
-              lazy_load: lazy_load
+              lazy_load: false
             %}
           </li>
-        {%- endunless -%}
-      {%- endfor -%}
-    </ul>
-    <div class="slider-buttons quick-add-hidden{% if hide_mobile_slider %} small-hide{% endif %}">
-      <button
-        type="button"
-        class="slider-button slider-button--prev"
-        name="previous"
-        aria-label="{{ 'general.slider.previous_slide' | t }}"
-      >
-        <span class="svg-wrapper">
-          {{- 'icon-caret.svg' | inline_asset_content -}}
-        </span>
-      </button>
-      <div class="slider-counter caption">
-        <span class="slider-counter--current">1</span>
-        <span aria-hidden="true"> / </span>
-        <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
-        <span class="slider-counter--total">{{ media_count }}</span>
-      </div>
-      <button
-        type="button"
-        class="slider-button slider-button--next"
-        name="next"
-        aria-label="{{ 'general.slider.next_slide' | t }}"
-      >
-        <span class="svg-wrapper">
-          {{- 'icon-caret.svg' | inline_asset_content -}}
-        </span>
-      </button>
+        {%- endfor -%}
+      </ul>
+
+      {% if section.settings.swiper_enable_pagination %}
+        <div class="swiper-pagination"></div>
+      {% endif %}
+      {% if section.settings.swiper_enable_navigation %}
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+      {% endif %}
     </div>
-  </slider-component>
+  </div>
+
   {%- if first_3d_model -%}
     <button
       class="button button--full-width product__xr-button"
@@ -164,12 +145,11 @@
       data-shopify-title="{{ product.title | escape }}"
       data-shopify-xr-hidden
     >
-      <span class="svg-wrapper">
-        {{- 'icon-3d-model.svg' | inline_asset_content -}}
-      </span>
+      <span class="svg-wrapper">{{- 'icon-3d-model.svg' | inline_asset_content -}}</span>
       {{ 'products.product.xr_button' | t }}
     </button>
   {%- endif -%}
+
   {%- liquid
     assign is_not_limited_to_single_item = false
     if limit == null or limit > 1
@@ -193,10 +173,9 @@
         aria-controls="GalleryThumbnails-{{ section.id }}"
         data-step="3"
       >
-        <span class="svg-wrapper">
-          {{- 'icon-caret.svg' | inline_asset_content -}}
-        </span>
+        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
       </button>
+
       <ul
         id="Slider-Thumbnails-{{ section.id }}"
         class="thumbnail-list list-unstyled slider slider--mobile{% if section.settings.gallery_layout == 'thumbnail_slider' %} slider--tablet-up{% endif %}"
@@ -226,10 +205,31 @@
             class="thumbnail-list__item slider__slide{% if section.settings.hide_variants and variant_images contains featured_media.src %} thumbnail-list_item--variant{% endif %}"
             data-target="{{ section.id }}-{{ featured_media.id }}"
             data-media-position="{{ media_index }}"
+            {%- liquid
+              if featured_media.media_type == 'image'
+                assign t_img_src = featured_media.src
+                assign t_img_obj = product.images | where: 'src', t_img_src | first
+                assign t_colors = ''
+                if t_img_obj and t_img_obj.variants.size > 0
+                  for t_var in t_img_obj.variants
+                    assign t_idx = color_option_index
+                    if t_idx == 0
+                      assign t_val = t_var.option1
+                    elsif t_idx == 1
+                      assign t_val = t_var.option2
+                    else
+                      assign t_val = t_var.option3
+                    endif
+                    if t_val
+                      assign t_colors = t_colors | append: t_val | append: '||'
+                    endif
+                  endfor
+                endif
+              endif
+            -%}
+            {% if t_colors %}data-variant-colors="{{ t_colors | downcase }}"{% endif %}
           >
-            {%- capture thumbnail_id -%}
-              Thumbnail-{{ section.id }}-0
-            {%- endcapture -%}
+            {%- capture thumbnail_id -%}Thumbnail-{{ section.id }}-0{%- endcapture -%}
             <button
               class="thumbnail global-media-settings global-media-settings--no-shadow"
               aria-label="{%- if featured_media.media_type == 'image' -%}{{ 'products.product.media.load_image' | t: index: media_index }}{%- elsif featured_media.media_type == 'model' -%}{{ 'products.product.media.load_model' | t: index: media_index }}{%- elsif featured_media.media_type == 'video' or featured_media.media_type == 'external_video' -%}{{ 'products.product.media.load_video' | t: index: media_index }}{%- endif -%}"
@@ -251,6 +251,7 @@
             </button>
           </li>
         {%- endif -%}
+
         {%- for media in product.media -%}
           {%- unless media.id == product.selected_or_first_available_variant.featured_media.id -%}
             {%- liquid
@@ -270,32 +271,47 @@
               class="thumbnail-list__item slider__slide{% if section.settings.hide_variants and variant_images contains media.src %} thumbnail-list_item--variant{% endif %}"
               data-target="{{ section.id }}-{{ media.id }}"
               data-media-position="{{ media_index }}"
+              {%- liquid
+                if media.media_type == 'image'
+                  assign tt_img_src = media.src
+                  assign tt_img_obj = product.images | where: 'src', tt_img_src | first
+                  assign tt_colors = ''
+                  if tt_img_obj and tt_img_obj.variants.size > 0
+                    for tt_var in tt_img_obj.variants
+                      assign tt_idx = color_option_index
+                      if tt_idx == 0
+                        assign tt_val = tt_var.option1
+                      elsif tt_idx == 1
+                        assign tt_val = tt_var.option2
+                      else
+                        assign tt_val = tt_var.option3
+                      endif
+                      if tt_val
+                        assign tt_colors = tt_colors | append: tt_val | append: '||'
+                      endif
+                    endfor
+                  endif
+                endif
+              -%}
+              {% if tt_colors %}data-variant-colors="{{ tt_colors | downcase }}"{% endif %}
             >
               {%- if media.media_type == 'model' -%}
                 <span class="thumbnail__badge" aria-hidden="true">
-                  <span class="svg-wrapper">
-                    {{- 'icon-3d-model.svg' | inline_asset_content -}}
-                  </span>
+                  <span class="svg-wrapper">{{- 'icon-3d-model.svg' | inline_asset_content -}}</span>
                 </span>
               {%- elsif media.media_type == 'video' or media.media_type == 'external_video' -%}
                 <span class="thumbnail__badge" aria-hidden="true">
-                  <span class="svg-wrapper">
-                    {{- 'icon-play.svg' | inline_asset_content -}}
-                  </span>
+                  <span class="svg-wrapper">{{- 'icon-play.svg' | inline_asset_content -}}</span>
                 </span>
               {%- endif -%}
-              {%- capture thumbnail_id -%}
-                Thumbnail-{{ section.id }}-{{ forloop.index }}
-              {%- endcapture -%}
+              {%- capture thumbnail_id -%}Thumbnail-{{ section.id }}-{{ forloop.index }}{%- endcapture -%}
               <button
                 class="thumbnail global-media-settings global-media-settings--no-shadow"
                 aria-label="{%- if media.media_type == 'image' -%}{{ 'products.product.media.load_image' | t: index: media_index }}{%- elsif media.media_type == 'model' -%}{{ 'products.product.media.load_model' | t: index: media_index }}{%- elsif media.media_type == 'video' or media.media_type == 'external_video' -%}{{ 'products.product.media.load_video' | t: index: media_index }}{%- endif -%}"
                 {% if media == product.selected_or_first_available_variant.featured_media
                   or product.selected_or_first_available_variant.featured_media == null
                   and forloop.index == 1
-                %}
-                  aria-current="true"
-                {% endif %}
+                %} aria-current="true"{% endif %}
                 aria-controls="GalleryViewer-{{ section.id }}"
                 aria-describedby="{{ thumbnail_id }}"
               >
@@ -315,6 +331,7 @@
           {%- endunless -%}
         {%- endfor -%}
       </ul>
+
       <button
         type="button"
         class="slider-button slider-button--next{% if media_count <= 3 %} small-hide{% endif %}{% if media_count <= 4 %} medium-hide large-up-hide{% endif %}"
@@ -323,9 +340,7 @@
         aria-controls="GalleryThumbnails-{{ section.id }}"
         data-step="3"
       >
-        <span class="svg-wrapper">
-          {{- 'icon-caret.svg' | inline_asset_content -}}
-        </span>
+        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
       </button>
     </slider-component>
   {%- endif -%}

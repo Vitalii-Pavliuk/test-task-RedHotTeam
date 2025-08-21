@@ -15,6 +15,9 @@
   {{ 'component-slider.css' | asset_url | stylesheet_tag }}
   {{ 'component-rating.css' | asset_url | stylesheet_tag }}
   {{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
+  {{ 'custom-product-layout.css' | asset_url | stylesheet_tag }}
+  {{ 'product-gallery-swiper.css' | asset_url | stylesheet_tag }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" media="print" onload="this.media='all'">
 
   {% unless product.has_only_default_variant %}
     {{ 'component-product-variant-picker.css' | asset_url | stylesheet_tag }}
@@ -41,6 +44,10 @@
 
   <script src="{{ 'product-info.js' | asset_url }}" defer="defer"></script>
   <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js" defer="defer"></script>
+  <script src="{{ 'product-gallery-swiper.js' | asset_url }}" defer="defer"></script>
+  <!-- Original media-gallery.js disabled to prevent conflicts with Swiper -->
+  <!-- <script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script> -->
   {%- if product.quantity_price_breaks_configured? -%}
     <script src="{{ 'show-more.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'price-per-item.js' | asset_url }}" defer="defer"></script>
@@ -74,7 +81,7 @@
 
   {% assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src' %}
   <div class="page-width">
-    <div class="product product--{{ section.settings.media_size }} product--{{ section.settings.media_position }} product--{{ section.settings.gallery_layout }} product--mobile-{{ section.settings.mobile_thumbnails }} grid grid--1-col {% if product.media.size > 0 %}grid--2-col-tablet{% else %}product--no-media{% endif %}">
+    <div class="product product--{{ section.settings.media_size }} product--{{ section.settings.media_position }} product--{{ section.settings.gallery_layout }} product--mobile-{{ section.settings.mobile_thumbnails }} grid grid--1-col {% if product.media.size > 0 %}grid--1-col-tablet{% else %}product--no-media{% endif %}">
       <div class="grid__item product__media-wrapper">
         {% render 'product-media-gallery', variant_images: variant_images %}
       </div>
@@ -477,6 +484,47 @@
 
               {%- when 'variant_picker' -%}
                 {% render 'product-variant-picker', product: product, block: block, product_form_id: product_form_id %}
+              {%- when 'dynamic_accordion' -%}
+                {%- liquid
+                  assign titles = product.metafields.custom.accordion_titles | default: blank
+                  assign contents = product.metafields.custom.accordion_contents | default: blank
+                -%}
+                {%- if titles != blank and contents != blank -%}
+                  <div class="product__accordion accordion quick-add-hidden" {{ block.shopify_attributes }} data-allow-multiple="{{ block.settings.allow_multiple }}">
+                    {%- assign titles_list = titles.value -%}
+                    {%- assign contents_list = contents.value -%}
+                    {%- for t in titles_list -%}
+                      {%- assign c = contents_list[forloop.index0] -%}
+                      {%- if t != blank and c != blank -%}
+                        <details>
+                          <summary>
+                            <div class="summary__title">
+                              <h2 class="h4 accordion__title inline-richtext">{{ t }}</h2>
+                            </div>
+                            {{- 'icon-caret.svg' | inline_asset_content -}}
+                          </summary>
+                          <div class="accordion__content rte">{{ c }}</div>
+                        </details>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </div>
+                  <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                      var container = document.querySelector('.product__accordion[data-allow-multiple]');
+                      if (!container) return;
+                      var allowMultiple = container.getAttribute('data-allow-multiple') === 'true';
+                      if (allowMultiple) return;
+                      container.querySelectorAll('details > summary').forEach(function(sum){
+                        sum.addEventListener('click', function() {
+                          var parent = sum.closest('details');
+                          if (!parent.open) {
+                            container.querySelectorAll('details[open]').forEach(function(d){ if (d !== parent) d.removeAttribute('open'); });
+                          }
+                        });
+                      });
+                    });
+                  </script>
+                {%- endif -%}
               {%- when 'buy_buttons' -%}
                 {%- render 'buy-buttons',
                   block: block,
@@ -714,7 +762,8 @@
 
     {%- if product.media.size > 0 -%}
       <script src="{{ 'product-modal.js' | asset_url }}" defer="defer"></script>
-      <script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script>
+      <!-- Original media-gallery.js disabled to prevent conflicts with Swiper -->
+      <!-- <script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script> -->
     {%- endif -%}
 
     {%- if first_3d_model -%}
@@ -955,7 +1004,67 @@
           "id": "custom_liquid",
           "label": "t:sections.custom-liquid.settings.custom_liquid.label",
           "info": "t:sections.custom-liquid.settings.custom_liquid.info"
-        }
+        },
+        {
+      "type": "header",
+      "content": "Налаштування Swiper Галереї"
+    },
+    {
+      "type": "range",
+      "id": "swiper_slides_desktop",
+      "label": "Кількість слайдів на ПК",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "swiper_slides_tablet",
+      "label": "Кількість слайдів на планшеті",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "swiper_slides_mobile",
+      "label": "Кількість слайдів на мобільному",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "swiper_space_between",
+      "label": "Відступ між слайдами (в пікселях)",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 10,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_enable_pagination",
+      "label": "Увімкнути пагінацію (крапки)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_enable_navigation",
+      "label": "Увімкнути навігацію (стрілки)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "color_option_name",
+      "label": "Назва опції для фільтрації кольорів",
+      "info": "Введіть точну назву опції, яка відповідає за колір (наприклад, Color, Колір). Регістр важливий.",
+      "default": "Color"
+    }
       ]
     },
     {
@@ -1461,6 +1570,23 @@
           "id": "enable_quick_add",
           "label": "t:sections.main-product.blocks.complementary_products.settings.enable_quick_add.label",
           "default": false
+        }
+      ]
+    },
+    {
+      "type": "dynamic_accordion",
+      "name": "Accordion (metafields)",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Renders an accordion from product metafields: custom.accordion_titles (list of text) and custom.accordion_contents (list of rich text)."
+        },
+        {
+          "type": "checkbox",
+          "id": "allow_multiple",
+          "label": "Allow multiple items open",
+          "default": true
         }
       ]
     },
@@ -2238,6 +2364,66 @@
       "id": "enable_video_looping",
       "default": false,
       "label": "t:sections.main-product.settings.enable_video_looping.label"
+    },
+    {
+      "type": "header",
+      "content": "Налаштування Swiper Галереї"
+    },
+    {
+      "type": "range",
+      "id": "swiper_slides_desktop",
+      "label": "Кількість слайдів на ПК",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "swiper_slides_tablet",
+      "label": "Кількість слайдів на планшеті",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "swiper_slides_mobile",
+      "label": "Кількість слайдів на мобільному",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "swiper_space_between",
+      "label": "Відступ між слайдами (в пікселях)",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 10,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_enable_pagination",
+      "label": "Увімкнути пагінацію (крапки)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_enable_navigation",
+      "label": "Увімкнути навігацію (стрілки)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "color_option_name",
+      "label": "Назва опції для фільтрації кольорів",
+      "info": "Введіть точну назву опції, яка відповідає за колір (наприклад, Color, Колір). Регістр важливий.",
+      "default": "Color"
     },
     {
       "type": "header",
