@@ -1396,7 +1396,6 @@ shopify-accelerated-checkout-cart {
 
 .share-button:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  text-decoration: underline;
 }
 
 .share-button details {
@@ -1418,7 +1417,6 @@ details[open] > .share-button__fallback {
 }
 
 .share-button__button:hover {
-  text-decoration: underline;
   text-underline-offset: 0.3rem;
 }
 
