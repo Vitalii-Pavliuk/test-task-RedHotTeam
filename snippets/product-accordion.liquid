@@ -1,0 +1,37 @@
+{%- comment -%}
+  Призначаємо метафілди змінним.
+  Ми використовуємо `metafield_tag` для `contents`, щоб одразу отримати HTML-рядок.
+{%- endcomment -%}
+{%- assign titles = product.metafields.custom.accordion_titles.value -%}
+{%- assign descriptions_block = product.metafields.custom.accordion_contents | metafield_tag -%}
+
+{%- comment -%}
+  "Розрізаємо" HTML-рядок на окремі частини по тегу <p>---</p>.
+  Саме так редактор Rich Text зберігає три дефіси на окремому рядку.
+{%- endcomment -%}
+{%- assign descriptions_array = descriptions_block | split: '<p>---</p>' -%}
+
+{%- if titles != blank and descriptions_block != blank -%}
+  <div
+    class="product-accordion"
+    data-allow-multiple="{{ section.settings.accordion_allow_multiple }}"
+    data-accordion-initialized="false"
+  >
+    {%- for title in titles -%}
+      {%- assign index = forloop.index0 -%}
+      {%- assign description = descriptions_array[index] -%}
+
+      {%- if description != blank -%}
+        <details class="accordion-item">
+          <summary class="accordion-title">
+            <span>{{ title }}</span>
+            <span class="accordion-icon"></span>
+          </summary>
+          <div class="accordion-content rte">
+            {{- description -}}
+          </div>
+        </details>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+{%- endif -%}

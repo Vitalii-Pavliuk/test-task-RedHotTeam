@@ -203,6 +203,7 @@
                   <div class="product__description rte quick-add-hidden" {{ block.shopify_attributes }}>
                     {{ product.description }}
                   </div>
+                  {% render 'product-accordion' %}
                 {%- endif -%}
               {%- when 'sku' -%}
                 <p
@@ -1010,43 +1011,6 @@
       "content": "Налаштування Swiper Галереї"
     },
     {
-      "type": "range",
-      "id": "swiper_slides_desktop",
-      "label": "Кількість слайдів на ПК",
-      "min": 1,
-      "max": 5,
-      "step": 1,
-      "default": 1
-    },
-    {
-      "type": "range",
-      "id": "swiper_slides_tablet",
-      "label": "Кількість слайдів на планшеті",
-      "min": 1,
-      "max": 4,
-      "step": 1,
-      "default": 1
-    },
-    {
-      "type": "range",
-      "id": "swiper_slides_mobile",
-      "label": "Кількість слайдів на мобільному",
-      "min": 1,
-      "max": 3,
-      "step": 1,
-      "default": 1
-    },
-    {
-      "type": "range",
-      "id": "swiper_space_between",
-      "label": "Відступ між слайдами (в пікселях)",
-      "min": 0,
-      "max": 50,
-      "step": 2,
-      "default": 10,
-      "unit": "px"
-    },
-    {
       "type": "checkbox",
       "id": "swiper_enable_pagination",
       "label": "Увімкнути пагінацію (крапки)",
@@ -1057,13 +1021,6 @@
       "id": "swiper_enable_navigation",
       "label": "Увімкнути навігацію (стрілки)",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "color_option_name",
-      "label": "Назва опції для фільтрації кольорів",
-      "info": "Введіть точну назву опції, яка відповідає за колір (наприклад, Color, Колір). Регістр важливий.",
-      "default": "Color"
     }
       ]
     },
@@ -1570,23 +1527,6 @@
           "id": "enable_quick_add",
           "label": "t:sections.main-product.blocks.complementary_products.settings.enable_quick_add.label",
           "default": false
-        }
-      ]
-    },
-    {
-      "type": "dynamic_accordion",
-      "name": "Accordion (metafields)",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "paragraph",
-          "content": "Renders an accordion from product metafields: custom.accordion_titles (list of text) and custom.accordion_contents (list of rich text)."
-        },
-        {
-          "type": "checkbox",
-          "id": "allow_multiple",
-          "label": "Allow multiple items open",
-          "default": true
         }
       ]
     },
@@ -2212,7 +2152,24 @@
           "info": "t:sections.main-product.blocks.icon_with_text.settings.heading.info"
         }
       ]
+    },
+{
+  "type": "dynamic_accordion",
+  "name": "Акордеон (з метафілдів)",
+  "limit": 1,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Виводить акордеон з метаполів товару: custom.accordion_titles та custom.accordion_contents."
+    },
+    {
+      "type": "checkbox",
+      "id": "accordion_allow_multiple",
+      "label": "Дозволити відкривати декілька вкладок",
+      "default": false
     }
+  ]
+}
   ],
   "settings": [
     {
@@ -2370,43 +2327,6 @@
       "content": "Налаштування Swiper Галереї"
     },
     {
-      "type": "range",
-      "id": "swiper_slides_desktop",
-      "label": "Кількість слайдів на ПК",
-      "min": 1,
-      "max": 5,
-      "step": 1,
-      "default": 1
-    },
-    {
-      "type": "range",
-      "id": "swiper_slides_tablet",
-      "label": "Кількість слайдів на планшеті",
-      "min": 1,
-      "max": 4,
-      "step": 1,
-      "default": 1
-    },
-    {
-      "type": "range",
-      "id": "swiper_slides_mobile",
-      "label": "Кількість слайдів на мобільному",
-      "min": 1,
-      "max": 3,
-      "step": 1,
-      "default": 1
-    },
-    {
-      "type": "range",
-      "id": "swiper_space_between",
-      "label": "Відступ між слайдами (в пікселях)",
-      "min": 0,
-      "max": 50,
-      "step": 2,
-      "default": 10,
-      "unit": "px"
-    },
-    {
       "type": "checkbox",
       "id": "swiper_enable_pagination",
       "label": "Увімкнути пагінацію (крапки)",
@@ -2417,13 +2337,6 @@
       "id": "swiper_enable_navigation",
       "label": "Увімкнути навігацію (стрілки)",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "color_option_name",
-      "label": "Назва опції для фільтрації кольорів",
-      "info": "Введіть точну назву опції, яка відповідає за колір (наприклад, Color, Колір). Регістр важливий.",
-      "default": "Color"
     },
     {
       "type": "header",

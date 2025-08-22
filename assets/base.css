@@ -1380,8 +1380,23 @@ shopify-accelerated-checkout-cart {
 /* Button - social share */
 
 .share-button {
-  display: block;
-  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  color: #fff;
+  border: 2px solid #515151; 
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.share-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-decoration: underline;
 }
 
 .share-button details {
@@ -3594,4 +3609,16 @@ details-disclosure > details {
   100% {
     transform: translateX(100%) scaleX(0);
   }
+}
+
+.accordion-title span:first-child {
+  transition: color 0.4s ease, text-decoration-color 0.4s ease;
+  text-decoration: underline;
+  text-decoration-color: transparent; 
+  text-underline-offset: 0.4rem; 
+}
+
+.accordion-title:hover span:first-child {
+  color: rgba(var(--color-foreground), 0.75);
+  text-decoration-color: rgba(var(--color-foreground), 0.75);
 }

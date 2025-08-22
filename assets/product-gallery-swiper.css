@@ -96,3 +96,9 @@ media-gallery .product__media-list:not(.swiper-wrapper) {
   flex: 0 0 100% !important;
   max-width: 100% !important;
 }
+
+.swiper-button-disabled {
+  opacity: 0.35 !important;
+  /* cursor: not-allowed !important; */
+  pointer-events: auto !important;
+}
